@@ -232,6 +232,23 @@ Node types: `start`, `message`, `template`, `menu`, `input`, `condition`, `delay
 - `templates` - Template cache (synced from Meta)
 - `flows` - Workflow definitions
 - `account_alerts` - Health alerts
+- `crm_pipelines` / `crm_stages` - Funis e etapas do CRM (modelo Kommo; etapas `open` + uma `won` + uma `lost`)
+- `crm_leads` - Leads/negócios (valor, responsável, campos de mudança da Mude Bem) vinculados a `contacts`
+- `crm_tasks` / `crm_lead_events` / `crm_loss_reasons` - Tarefas, timeline e motivos de perda
+
+## CRM (modelo Kommo)
+
+```
+app/(dashboard)/crm/        # Página: Funil (Kanban) | Lista | Tarefas
+hooks/useCrm.ts             # useCrmController, useCrmLeadDetail, useCrmTasksController
+services/crmService.ts      # Cliente das rotas /api/crm/*
+lib/crm/crm-db.ts           # Camada de dados (service role)
+components/features/crm/    # Views (Kanban com drag & drop nativo, card lateral do lead)
+```
+
+- Ordem dos cards usa `sort_order` fracionário (`computeSortOrder`) — sem reordenar a coluna inteira.
+- Mudança de etapa registra evento na timeline; mover para "Perdido" pede motivo da perda.
+- Inbox: botão no cabeçalho da conversa abre/cria o lead do contato (`CrmConversationLeadButton`).
 
 ## Next.js Configuration
 

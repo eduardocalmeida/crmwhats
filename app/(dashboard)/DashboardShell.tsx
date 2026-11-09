@@ -15,6 +15,7 @@ import {
     MessageCircle,
     Sparkles,
     Workflow,
+    KanbanSquare,
 } from 'lucide-react'
 import React from 'react'
 import { HealthStatus } from '@/lib/health-check'
@@ -339,6 +340,7 @@ export function DashboardShell({
         { path: '/', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/campaigns', label: 'Campanhas', icon: MessageSquare },
         { path: '/inbox', label: 'Inbox', icon: MessageCircle }, // Badge dinâmico renderizado no DashboardSidebar
+        { path: '/crm', label: 'CRM', icon: KanbanSquare },
         { path: '/workflows', label: 'Workflow', icon: Workflow, badge: 'beta', disabled: true, hidden: !isDevMode },
         { path: '/conversations', label: 'Conversas', icon: MessageCircle, hidden: true },
         { path: '/templates', label: 'Templates', icon: FileText },
@@ -362,6 +364,7 @@ export function DashboardShell({
         if (path === '/flows/builder') return 'MiniApp Builder'
         if (path.startsWith('/flows/builder/')) return 'Editor de MiniApp'
         if (path === '/templates') return 'Templates'
+        if (path.startsWith('/crm')) return 'CRM'
         if (path.startsWith('/contacts')) return 'Contatos'
         if (path.startsWith('/submissions')) return 'Submissões'
         if (path === '/settings/ai') return 'Central de IA'
