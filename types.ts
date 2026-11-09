@@ -844,3 +844,9 @@ export interface UpdateAttendantTokenDTO {
   is_active?: boolean;
   expires_at?: string | null;
 }
+
+// =============================================================================
+// CRM (modelo Kommo) — definições em types/crm.types.ts
+// =============================================================================
+
+export type * from './types/crm.types';

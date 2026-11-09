@@ -70,6 +70,19 @@ export const api = {
         return response.json();
     },
 
+    /** PUT com corpo JSON — lança Error com mensagem do servidor. Retorna null em 204. */
+    async put<T>(path: string, body?: unknown, init?: RequestInit): Promise<T> {
+        const response = await fetch(path, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: body !== undefined ? JSON.stringify(body) : undefined,
+            ...init,
+        });
+        if (!response.ok) throw new Error(await extractError(response));
+        if (response.status === 204 || response.headers.get('content-length') === '0') return null as T;
+        return response.json();
+    },
+
     /** DELETE — lança Error com mensagem do servidor. Sem corpo de retorno. */
     async del(path: string, init?: RequestInit): Promise<void> {
         const response = await fetch(path, { method: 'DELETE', ...init });

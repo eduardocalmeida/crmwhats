@@ -66,6 +66,7 @@ import type {
   ConversationPriority,
 } from '@/types'
 import { ContactMemoriesSheet } from './ContactMemoriesSheet'
+import { CrmConversationLeadButton } from '@/components/features/crm/CrmConversationLeadButton'
 import { formatPhoneNumberDisplay } from '@/lib/phone-formatter'
 
 export interface ConversationHeaderProps {
@@ -242,6 +243,13 @@ export function ConversationHeader({
 
       {/* Actions - compact */}
       <div className="flex items-center gap-1">
+        {/* Lead no CRM (abrir existente ou criar) */}
+        <CrmConversationLeadButton
+          contactId={conversation.contact_id}
+          phone={phone}
+          contactName={contact?.name || undefined}
+        />
+
         {/* Memories quick access */}
         <Tooltip>
           <TooltipTrigger asChild>
