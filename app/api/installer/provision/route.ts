@@ -21,6 +21,7 @@
 
 import { z } from 'zod';
 import { fetchWithTimeout } from '@/lib/installer/fetch-with-timeout';
+import { detectQStashBaseUrl, describeQStashError } from '@/lib/installer/qstash-region';
 import { runSchemaMigration, checkSchemaApplied } from '@/lib/installer/migrations';
 import { bootstrapInstance } from '@/lib/installer/bootstrap';
 import { triggerProjectRedeploy, upsertProjectEnvs, waitForVercelDeploymentReady, disableDeploymentProtection } from '@/lib/installer/vercel';
@@ -177,31 +178,11 @@ async function validateVercelToken(token: string): Promise<{ projectId: string; 
   };
 }
 
-async function validateQStashToken(token: string): Promise<void> {
-  // Detecta região via JWT (mesmo padrão de /api/installer/qstash/validate)
-  let qstashBaseUrl = 'https://qstash.upstash.io';
-  try {
-    const payloadB64 = token.split('.')[1];
-    if (payloadB64) {
-      const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString());
-      if (payload.iss && typeof payload.iss === 'string') {
-        qstashBaseUrl = payload.iss.replace(/\/$/, '');
-      }
-    }
-  } catch {
-    // JWT indecodificável: usa fallback genérico
-  }
-
-  const res = await fetchWithTimeout(`${qstashBaseUrl}/v2/schedules`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      throw new Error('Token QStash inválido. Copie o QSTASH_TOKEN do console Upstash → QStash → Details.');
-    }
-    throw new Error('Erro ao validar token QStash');
-  }
+/** Valida o token e retorna o endpoint da região do QStash (salvo como QSTASH_URL). */
+async function validateQStashToken(token: string): Promise<string> {
+  const result = await detectQStashBaseUrl(token);
+  if (!result.ok) throw new Error(describeQStashError(result));
+  return result.baseUrl;
 }
 
 async function validateRedisCredentials(url: string, token: string): Promise<void> {
@@ -578,7 +559,7 @@ export async function POST(req: Request) {
         subtitle: step6.subtitle,
       });
 
-      await validateQStashToken(qstash.token);
+      const qstashBaseUrl = await validateQStashToken(qstash.token);
       console.log('[provision] ✅ Step 6/12: Validate QStash - COMPLETO');
       stepIndex++;
 
@@ -614,6 +595,7 @@ export async function POST(req: Request) {
         { key: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', value: anonKey, targets: [...envTargets] },
         { key: 'SUPABASE_SECRET_KEY', value: serviceRoleKey, targets: [...envTargets] },
         { key: 'QSTASH_TOKEN', value: qstash.token, targets: [...envTargets] },
+        { key: 'QSTASH_URL', value: qstashBaseUrl, targets: [...envTargets] },
         { key: 'UPSTASH_REDIS_REST_URL', value: redis.restUrl, targets: [...envTargets] },
         { key: 'UPSTASH_REDIS_REST_TOKEN', value: redis.restToken, targets: [...envTargets] },
         { key: 'MASTER_PASSWORD', value: passwordHash, targets: [...envTargets] },
